@@ -1,0 +1,46 @@
+# Azure DevOps Pipeline Template for istarion111/test repository
+# This pipeline downloads the repository and reads test.txt file
+
+trigger:
+  - main
+# Resources - reference the GitHub repository
+resources:
+  repositories:
+    - repository: istarion111-test
+      name: istarion111/test
+      type: git
+      ref: main
+      endpoint: GitHubKontentDevOps
+
+# Pipeline stages
+stages:
+  - stage: DownloadAndRead
+    displayName: 'Download Repository and Read File'
+    jobs:
+      - job: ReadTestFile
+        displayName: 'Read test.txt from Repository'
+        pool:
+          name: Default
+        
+        steps:
+          - checkout: istarion111-test
+            displayName: 'Checkout istarion111/test repository'
+          
+          - task: PowerShell@2
+            displayName: 'Read test.txt file'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Repository contents:"
+                Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
+                
+                Write-Host "`nReading test.txt file:"
+                if (Test-Path "test.txt") {
+                    $content = Get-Content "test.txt" -Raw
+                    Write-Host "File content:"
+                    Write-Host $content
+                } else {
+                    Write-Host "test.txt file not found in repository"
+                    Write-Host "Available files:"
+                    Get-ChildItem | ForEach-Object { Write-Host $_.Name }
+                }
